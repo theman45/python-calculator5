@@ -14,3 +14,13 @@ def test_subtract():
 def test_multiply():
     """Test multiplication of numbers."""
     assert operations.multiply(2, 4) == 8
+
+def test_divide():
+    """Test division of numbers."""
+    assert operations.divide(10, 2) == 5
+
+def test_divide_by_zero():
+    """Test division by zero raises ValueError."""
+    import pytest
+    with pytest.raises(ValueError):
+        operations.divide(5, 0)
