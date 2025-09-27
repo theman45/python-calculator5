@@ -1,6 +1,8 @@
 """Tests for operations module."""
 import pytest
+
 from src import operations
+
 
 def test_add():
     """Test addition of positive and negative numbers."""

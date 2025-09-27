@@ -2,6 +2,7 @@
 
 from . import operations
 
+
 class Calculator:
     """Simple calculator class wrapping arithmetic functions."""
 

@@ -1,6 +1,7 @@
 """Tests for Calculator class."""
 
 import pytest
+
 from src.calculator import Calculator
 
 calc = Calculator()
