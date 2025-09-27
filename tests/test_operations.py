@@ -1,5 +1,5 @@
 """Tests for operations module."""
-
+import pytest
 from src import operations
 
 def test_add():
@@ -21,6 +21,6 @@ def test_divide():
 
 def test_divide_by_zero():
     """Test division by zero raises ValueError."""
-    import pytest
+    
     with pytest.raises(ValueError):
         operations.divide(5, 0)
