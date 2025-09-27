@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
@@ -7,33 +7,74 @@ on:
     branches: [ main ]
 
 jobs:
-  validate:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint pytest pytest-cov
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Run pytest with coverage
-      run: |
-        pytest --cov=src --cov-report=term-missing
+        pip install -r requirements.txt
 
     - name: Run pylint
       run: |
-        pylint src tests
+        pylint src/ tests/ --fail-under=8.0
 
-    - name: Check Markdown Links
-      uses: gaurav-nelson/github-action-markdown-link-check@v1
+    - name: Run pytest with coverage
+      run: |
+        pytest --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=100
+
+    - name: Upload coverage reports to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
       with:
-        use-quiet-mode: 'yes'
-        folder-path: 'docs/'
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install black isort
+
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only --diff src/ tests/
+
+    - name: Check code formatting with black
+      run: |
+        black --check --diff src/ tests/
+
+    - name: Run pylint
+      run: |
+        pylint src/ tests/ --fail-under=8.0
